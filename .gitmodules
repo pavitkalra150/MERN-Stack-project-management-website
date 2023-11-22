@@ -1,0 +1,3 @@
+[submodule "MERN-Stack-project-management-website"]
+	path = MERN-Stack-project-management-website
+	url = https://github.com/pavitkalra150/MERN-Stack-project-management-website.git
