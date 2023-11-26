@@ -12,7 +12,7 @@ const taskSchema = new mongoose.Schema({
   endDate: { type: Date },
   status: {
     type: String,
-    enum: ["Completed", "In Progress", "Not Started"],
+    enum: ["Completed", "In Progress", "Open"],
     required: true,
   },
   hoursWorked: { type: Number },

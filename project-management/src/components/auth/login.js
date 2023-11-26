@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "../../styles/login.css"; // Import custom CSS file
+import "../styles/login.css"; // Import custom CSS file
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -11,19 +11,13 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      const response = await axios.post("http://localhost:3003/api/login", {
+      const response = await axios.post("http://localhost:3004/api/login", {
         email,
         password,
       });
-
-      // Upon successful login, you'll receive a token in the response
-      const token = response.data.token;
-
-      // Assuming the response also contains the user's role
       const userRole = response.data.role;
-
-      // Store the token in localStorage or session storage for future requests
-      localStorage.setItem("token", token);
+      //localStorage.setItem("token", token);
+      sessionStorage.setItem("loggedInEmail", email);
 
       // Redirect to different dashboards based on the user's role
       if (userRole === "Admin") {

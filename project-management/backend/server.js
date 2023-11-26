@@ -4,8 +4,8 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT || 3003;
-
+const port = process.env.PORT || 3004;
+// app.use(cors({ origin: 'http://localhost:3004' }));
 const uri = process.env.ATLAS_URI;
 const mongoURI = uri;
 
@@ -23,10 +23,15 @@ db.once("open", () => {
 app.use(cors());
 app.use(express.json());
 
+// app.use("/api/projects", (req, res, next) => {
+//   res.setHeader("Cache-Control", "no-store");
+//   next();
+// });
+
 // Importing your Mongoose models (schemas)
 const User = require("./models/userModel");
 const Task = require("./models/taskModel");
-const Project = require("./models/projectModel")
+const Project = require("./models/projectModel");
 // Routes for Users
 const userRoutes = require("./routes/userRoute");
 app.use("/api", userRoutes);
