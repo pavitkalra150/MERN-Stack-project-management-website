@@ -37,7 +37,6 @@ router.patch("/projects/:id", getProject, async (req, res) => {
     res.project.description = req.body.description;
   }
   // Update other fields similarly
-
   try {
     const updatedProject = await res.project.save();
     res.json(updatedProject);
@@ -46,10 +45,23 @@ router.patch("/projects/:id", getProject, async (req, res) => {
   }
 });
 
-// Delete a project
-router.delete("/projects/:id", getProject, async (req, res) => {
+const getProjectById = async (req, res, next) => {
+  let project;
   try {
-    await res.project.remove();
+    project = await Project.findById(req.params.id);
+    if (project == null) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+  res.project = project;
+  next();
+};
+
+router.delete("/projects/:id", getProjectById, async (req, res) => {
+  try {
+    await Project.findByIdAndDelete(req.params.id);
     res.json({ message: "Project deleted" });
   } catch (err) {
     res.status(500).json({ message: err.message });

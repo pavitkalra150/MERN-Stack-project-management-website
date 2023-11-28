@@ -17,7 +17,7 @@ const taskSchema = new mongoose.Schema({
   },
   hoursWorked: { type: Number },
   prerequisiteTasks: [{ type: mongoose.Schema.Types.ObjectId, ref: "Task" }],
-  // Other relevant fields
+  assignedTo: { type: String, required: true },
 });
 
 const Task = mongoose.model("Task", taskSchema);

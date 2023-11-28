@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const User = require("../models/userModel");
 
-
 // GET all users
 router.get("/users", async (req, res) => {
   try {
@@ -52,11 +51,23 @@ router.put("/users/:id", async (req, res) => {
   }
 });
 
-// DELETE a user by ID
-router.delete("/users/:id", async (req, res) => {
+const getUserById = async (req, res, next) => {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
+    const user = await User.findById(req.params.userId);
     if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    res.user = user;
+    next();
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+router.delete("/users/:userId", getUserById, async (req, res) => {
+  try {
+    const deletedUser = await User.findByIdAndDelete(req.params.userId);
+    if (!deletedUser) {
       return res.status(404).json({ message: "User not found" });
     }
     res.json({ message: "User deleted" });
@@ -64,5 +75,4 @@ router.delete("/users/:id", async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
-
 module.exports = router;
