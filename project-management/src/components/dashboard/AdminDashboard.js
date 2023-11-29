@@ -18,10 +18,9 @@ const AdminDashboard = () => {
   const [showAddProjectModal, setShowAddProjectModal] = useState(false);
   const [showProjectDetailsModal, setShowProjectDetailsModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
-  const [users, setUsers] = useState([]); // Your users state
-  const [editUser, setEditUser] = useState(null); // State for the user being edited
+  const [users, setUsers] = useState([]);
+  const [editUser, setEditUser] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
-  //const [selectedUser, setSelectedUser] = useState("");
   const roles = ["User", "Admin"];
   const [showAddUserModal, setShowAddUserModal] = useState(false);
   const [expandedTask, setExpandedTask] = useState(null);
@@ -30,6 +29,7 @@ const AdminDashboard = () => {
   const [selectedUserEmail, setSelectedUserEmail] = useState("");
   const [showEditProjectModal, setShowEditProjectModal] = useState(false);
   const [editedProject, setEditedProject] = useState(null);
+  const [tasks, setTasks] = useState([]);
   const handleOpenAddTaskModal = () => {
     setShowAddTaskModal(true);
   };
@@ -42,6 +42,7 @@ const AdminDashboard = () => {
     assignedTo: "", // This will store the selected user's ID
     hoursWorked: 0,
     status: "Open",
+    prerequisiteTasks: [],
   });
   const handleTaskToggle = (taskIndex) => {
     if (expandedTask === taskIndex) {
@@ -95,6 +96,7 @@ const AdminDashboard = () => {
   useEffect(() => {
     fetchProjects();
     fetchUsers();
+    fetchTasks();
   }, []);
 
   const handleEditProject = (e, project) => {
@@ -156,6 +158,31 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchTasks = async () => {
+    try {
+      const response = await axios.get("http://localhost:3004/api/tasks"); // Update the URL to your backend endpoint
+      setTasks(response.data); // Update tasks state with fetched data
+    } catch (error) {
+      console.error("Error fetching tasks:", error);
+    }
+  };
+
+  const handlePrerequisiteChange = (taskId) => {
+    const updatedPrerequisites = [...newTask.prerequisiteTasks];
+    const taskIndex = updatedPrerequisites.indexOf(taskId);
+
+    if (taskIndex === -1) {
+      updatedPrerequisites.push(taskId); // Add taskId if not already selected
+    } else {
+      updatedPrerequisites.splice(taskIndex, 1); // Remove taskId if already selected
+    }
+
+    setNewTask({
+      ...newTask,
+      prerequisiteTasks: updatedPrerequisites,
+    });
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -180,7 +207,7 @@ const AdminDashboard = () => {
       });
 
       if (response.ok) {
-        fetchUsers(); // Fetch updated users after adding a new one
+        fetchUsers();
         handleCloseAddUserModal();
       } else {
         console.error("Failed to create user");
@@ -189,30 +216,25 @@ const AdminDashboard = () => {
       console.error("Error:", error);
     }
   };
-  // Function to handle opening the edit modal
   const handleEditUser = (user) => {
     setEditUser(user);
     setShowEditModal(true);
   };
-
-  // Function to handle updating user details
   const handleUpdateUser = async () => {
     if (!editUser) {
       console.error("No user selected for editing");
       return;
     }
-  
+
     try {
-      // Ensure you're using the correct property name for the user's ID
       const response = await axios.put(
-        `http://localhost:3004/api/users/${editUser._id}`, // Use the correct ID property name
+        `http://localhost:3004/api/users/${editUser._id}`,
         editUser
       );
-  
+
       if (response.status === 200) {
         console.log("User details updated successfully");
-  
-        // Fetch updated users after successful update
+
         const updatedUsersResponse = await axios.get(
           "http://localhost:3004/api/users"
         );
@@ -221,9 +243,9 @@ const AdminDashboard = () => {
         } else {
           console.error("Failed to fetch updated users");
         }
-  
-        setShowEditModal(false); // Close the edit modal after successful update
-        setEditUser(null); // Reset editUser state
+
+        setShowEditModal(false);
+        setEditUser(null);
       } else {
         console.error("Failed to update user details");
       }
@@ -267,9 +289,6 @@ const AdminDashboard = () => {
 
   const handleCreateTask = async () => {
     try {
-      console.log("Selected Project ID:", selectedProjectId);
-      console.log("Selected User Email:", selectedUserEmail);
-
       const taskData = {
         ...newTask,
         projectId: selectedProjectId,
@@ -287,6 +306,7 @@ const AdminDashboard = () => {
       if (response.ok) {
         console.log("Task created successfully");
         handleCloseAddTaskModal();
+        await updateProjectStatus(selectedProjectId);
       } else {
         console.error("Failed to create task");
       }
@@ -306,6 +326,7 @@ const AdminDashboard = () => {
       assignedTo: "",
       hoursWorked: 0,
       status: "Open",
+      prerequisiteTasks: [],
     });
     // Close the modal
     setShowAddTaskModal(false);
@@ -425,6 +446,211 @@ const AdminDashboard = () => {
       console.error("Error:", error);
     }
   };
+
+  const handleStatusChange = async (event, taskIndex) => {
+    const newStatus = event.target.value;
+    const task = selectedProject.tasks[taskIndex];
+    if (!task || !task._id) {
+      console.error("Invalid task or taskId");
+      return;
+    }
+
+    if (newStatus === "in progress" || newStatus === "completed") {
+      const prerequisiteTasks = task.prerequisiteTasks;
+
+      try {
+        const prerequisiteTasksResponse = await Promise.all(
+          prerequisiteTasks.map(async (prerequisiteTaskId) => {
+            const prerequisiteTask = selectedProject.tasks.find(
+              (task) => task._id === prerequisiteTaskId
+            );
+
+            if (!prerequisiteTask || prerequisiteTask.status !== "completed") {
+              return false;
+            }
+            return true;
+          })
+        );
+
+        if (prerequisiteTasksResponse.includes(false)) {
+          window.alert(
+            `Cannot change status to ${newStatus}. Prerequisite tasks are not completed.`
+          );
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking prerequisite tasks:", error);
+        return;
+      }
+    }
+
+    try {
+      const taskId = task._id;
+      const response = await axios.put(
+        `http://localhost:3004/api/tasks/${taskId}/status`,
+        { status: newStatus }
+      );
+
+      if (response.status === 200) {
+        const updatedTasks = [...selectedProject.tasks];
+        updatedTasks[taskIndex].status = newStatus;
+
+        setSelectedProject({
+          ...selectedProject,
+          tasks: updatedTasks,
+        });
+
+        await updateProjectStatus(selectedProject._id);
+
+        console.log("Task status updated successfully");
+      } else {
+        console.error("Failed to update task status");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const handleHoursWorkedChange = async (event, taskIndex) => {
+    const newHoursWorked = event.target.value;
+    const taskId = selectedProject.tasks[taskIndex]._id;
+
+    const confirmUpdate = window.confirm(
+      `Are you sure you want to update the hours worked to ${newHoursWorked}?`
+    );
+
+    if (!confirmUpdate) {
+      return; // If the user cancels, exit the function
+    }
+
+    try {
+      const response = await axios.put(
+        `http://localhost:3004/api/tasks/${taskId}/hours`,
+        { hoursWorked: newHoursWorked }
+      );
+
+      if (response.status === 200) {
+        const updatedTasks = [...selectedProject.tasks];
+        updatedTasks[taskIndex].hoursWorked = newHoursWorked;
+
+        setSelectedProject({
+          ...selectedProject,
+          tasks: updatedTasks,
+        });
+        console.log("Task hours worked updated successfully");
+      } else {
+        console.error("Failed to update task hours worked");
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const handleEditTask = (index) => {
+    const selectedTask = selectedProject.tasks[index];
+    // Implement logic for editing the task here
+    console.log(`Editing task ${index + 1}:`, selectedTask);
+    // You can open a modal or perform other edit operations here
+  };
+
+  const handleDeleteTask = (index) => {
+    const selectedTask = selectedProject.tasks[index];
+    const confirmDeletion = window.confirm(
+      `Are you sure you want to delete Task Name: ${selectedTask.name}?`
+    );
+
+    if (confirmDeletion) {
+      deleteTask(selectedTask._id, index);
+    }
+  };
+
+  const deleteTask = async (taskId, index) => {
+    try {
+      const response = await fetch(
+        `http://localhost:3004/api/tasks/${taskId}`,
+        {
+          method: "DELETE",
+        }
+      );
+
+      if (response.ok) {
+        console.log(`Task ${index + 1} deleted successfully`);
+        // Update the tasks list after successful deletion
+        const updatedTasks = selectedProject.tasks.filter(
+          (task, i) => i !== index
+        );
+        setSelectedProject({
+          ...selectedProject,
+          tasks: updatedTasks,
+        });
+      } else {
+        console.error(`Failed to delete task ${index + 1}`);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  const updateProjectStatus = async (projectId) => {
+    try {
+      // Fetch all tasks for the given project ID
+      console.log(projectId);
+      const response = await axios.get(
+        `http://localhost:3004/api/tasks/project?projectId=${projectId}`
+      );
+      const tasks = response.data;
+
+      if (tasks.length === 0) {
+        console.log("No tasks found for the project");
+        return;
+      }
+
+      // Check if any task is 'In Progress'
+      const inProgressTasks = tasks.some(
+        (task) => task.status === "in progress"
+      );
+      const allOpen = tasks.every((task) => task.status === "open");
+      // Check if all tasks are 'Completed'
+      const allCompleted = tasks.every((task) => task.status === "completed");
+      const openTasksCount = tasks.filter(
+        (task) => task.status === "open"
+      ).length;
+      // Update the project status based on task statuses
+      let updatedProjectStatus;
+      if (allCompleted) {
+        updatedProjectStatus = "Completed";
+      } else if (inProgressTasks || openTasksCount > 0) {
+        updatedProjectStatus = "In Progress";
+      } else if (allOpen) {
+        updatedProjectStatus = "Open";
+      } else {
+        updatedProjectStatus = "In Progress";
+      }
+
+      // Update the project's status in the database
+      const projectUpdateResponse = await axios.put(
+        `http://localhost:3004/api/projects/${projectId}/status`,
+        {
+          status: updatedProjectStatus,
+        }
+      );
+
+      if (projectUpdateResponse.status === 200) {
+        console.log(
+          "Project status updated successfully:",
+          updatedProjectStatus
+        );
+        fetchProjects();
+        // Optionally, you might want to refresh the project list after the update
+        // fetchProjects();
+      } else {
+        console.error("Failed to update project status");
+      }
+    } catch (error) {
+      console.error("Error updating project status:", error);
+    }
+  };
+
   return (
     <Container className="py-4">
       <Row>
@@ -668,8 +894,22 @@ const AdminDashboard = () => {
             selectedProject.tasks.map((task, index) => (
               <Card key={task.taskId}>
                 {/* Assuming taskId is a unique identifier */}
-                <Card.Header onClick={() => handleTaskToggle(index)}>
-                  Task {index + 1}
+                <Card.Header
+                  onClick={() => handleTaskToggle(index)}
+                  className="d-flex justify-content-between align-items-center"
+                >
+                  {task.name}
+                  {/* Edit and Delete icons */}
+                  <div>
+                    <FontAwesomeIcon
+                      icon={faEdit}
+                      onClick={() => handleEditTask(index)}
+                    />
+                    <FontAwesomeIcon
+                      icon={faTrash}
+                      onClick={() => handleDeleteTask(index)}
+                    />
+                  </div>
                 </Card.Header>
                 {expandedTask === index && (
                   <Card.Body>
@@ -680,7 +920,46 @@ const AdminDashboard = () => {
                       <strong>Description:</strong> {task.description}
                     </p>
                     <p>
-                      <strong>Status:</strong> {task.status}
+                      <strong>Status:</strong>{" "}
+                      <select
+                        value={task.status}
+                        onChange={(e) => handleStatusChange(e, index)}
+                      >
+                        <option value="open">Open</option>
+                        <option value="in progress">In Progress</option>
+                        <option value="completed">Completed</option>
+                      </select>
+                    </p>
+                    <p>
+                      <strong>Assigned To:</strong> {task.assignedTo}
+                    </p>
+                    <p>
+                      <strong>End Date:</strong> {task.endDate}
+                    </p>
+                    <p>
+                      <strong>Hours Worked:</strong>{" "}
+                      <input
+                        type="number"
+                        value={task.hoursWorked}
+                        onChange={(e) => handleHoursWorkedChange(e, index)}
+                      />
+                    </p>
+                    <p>
+                      {task.prerequisiteTasks.length > 0 ? (
+                        <p>
+                          <strong>Prerequisite Tasks:</strong>{" "}
+                          {task.prerequisiteTasks.map((prereqTaskId, index) => {
+                            const prereqTask = tasks.find(
+                              (task) => task._id === prereqTaskId
+                            );
+                            return prereqTask ? (
+                              <span key={index}>{prereqTask.name}, </span>
+                            ) : null;
+                          })}
+                        </p>
+                      ) : (
+                        <p>No prerequisite tasks added</p>
+                      )}
                     </p>
                   </Card.Body>
                 )}
@@ -792,6 +1071,22 @@ const AdminDashboard = () => {
                   </option>
                 ))}
               </Form.Control>
+            </Form.Group>
+            <Form.Group controlId="formTaskPrerequisites">
+              <Form.Label>Select Prerequisite Tasks</Form.Label>
+              <div>
+                {tasks.map((task) => (
+                  <Form.Check
+                    key={task._id}
+                    type="checkbox"
+                    id={`prerequisite-${task._id}`}
+                    label={task.name}
+                    value={task._id}
+                    checked={newTask.prerequisiteTasks.includes(task._id)}
+                    onChange={(e) => handlePrerequisiteChange(task._id)}
+                  />
+                ))}
+              </div>
             </Form.Group>
           </Form>
         </Modal.Body>

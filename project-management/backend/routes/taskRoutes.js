@@ -3,6 +3,40 @@ const router = express.Router();
 const Task = require("../models/taskModel");
 const mongoose = require("mongoose");
 
+// Update task status by ID
+router.put("/tasks/:id/status", async (req, res) => {
+  try {
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      { status: req.body.status },
+      { new: true }
+    );
+    console.log(task);
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+    res.json(task);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
+
+// Update task hours worked by ID
+router.put("/tasks/:id/hours", async (req, res) => {
+  try {
+    const task = await Task.findByIdAndUpdate(
+      req.params.id,
+      { hoursWorked: req.body.hoursWorked },
+      { new: true }
+    );
+    if (!task) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+    res.json(task);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 // GET all tasks
 router.get("/tasks", async (req, res) => {
   try {
@@ -18,6 +52,7 @@ router.post("/tasks", async (req, res) => {
   const task = new Task(req.body);
   try {
     const newTask = await task.save();
+    console.log(newTask);
     res.status(201).json(newTask);
   } catch (err) {
     res.status(400).json({ message: err.message });

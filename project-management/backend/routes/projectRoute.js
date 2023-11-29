@@ -58,7 +58,17 @@ const getProjectById = async (req, res, next) => {
   res.project = project;
   next();
 };
+router.put("/projects/:id/status", getProject, async (req, res) => {
+  try {
+    const updatedStatus = req.body.status;
+    res.project.status = updatedStatus;
 
+    const updatedProject = await res.project.save();
+    res.json(updatedProject);
+  } catch (err) {
+    res.status(400).json({ message: err.message });
+  }
+});
 router.delete("/projects/:id", getProjectById, async (req, res) => {
   try {
     await Project.findByIdAndDelete(req.params.id);
