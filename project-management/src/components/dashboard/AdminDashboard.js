@@ -39,7 +39,7 @@ const AdminDashboard = () => {
     project: "",
     startDate: "",
     endDate: "",
-    assignedTo: "", 
+    assignedTo: "",
     hoursWorked: 0,
     status: "Open",
     prerequisiteTasks: [],
@@ -101,14 +101,14 @@ const AdminDashboard = () => {
 
   const handleEditProject = (e, project) => {
     e.stopPropagation();
-    setEditedProject(project); 
+    setEditedProject(project);
     setShowEditProjectModal(true);
   };
 
   const handleSaveEditProject = async () => {
     try {
       const response = await fetch(
-        `http://localhost:3004/api/projects/${editedProject._id}`,
+        `http://localhost:3005/api/projects/${editedProject._id}`,
         {
           method: "PATCH",
           headers: {
@@ -134,7 +134,7 @@ const AdminDashboard = () => {
   };
   const fetchProjects = async () => {
     try {
-      const response = await fetch("http://localhost:3004/api/projects");
+      const response = await fetch("http://localhost:3005/api/projects");
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
       }
@@ -146,7 +146,7 @@ const AdminDashboard = () => {
   };
   const fetchUsers = async () => {
     try {
-      const response = await fetch("http://localhost:3004/api/users");
+      const response = await fetch("http://localhost:3005/api/users");
       if (!response.ok) {
         throw new Error("Failed to fetch users");
       }
@@ -159,8 +159,8 @@ const AdminDashboard = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get("http://localhost:3004/api/tasks");
-      setTasks(response.data); 
+      const response = await axios.get("http://localhost:3005/api/tasks");
+      setTasks(response.data);
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }
@@ -185,7 +185,6 @@ const AdminDashboard = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-
     if (name in newUser) {
       setNewUser({ ...newUser, [name]: value });
     } else if (name in newProject) {
@@ -197,7 +196,7 @@ const AdminDashboard = () => {
 
   const handleCreateUser = async () => {
     try {
-      const response = await fetch("http://localhost:3004/api/users", {
+      const response = await fetch("http://localhost:3005/api/users", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -227,7 +226,7 @@ const AdminDashboard = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:3004/api/users/${editUser._id}`,
+        `http://localhost:3005/api/users/${editUser._id}`,
         editUser
       );
 
@@ -235,7 +234,7 @@ const AdminDashboard = () => {
         console.log("User details updated successfully");
 
         const updatedUsersResponse = await axios.get(
-          "http://localhost:3004/api/users"
+          "http://localhost:3005/api/users"
         );
         if (updatedUsersResponse.status === 200) {
           setUsers(updatedUsersResponse.data);
@@ -266,7 +265,7 @@ const AdminDashboard = () => {
 
   const handleCreateProject = async () => {
     try {
-      const response = await fetch("http://localhost:3004/api/projects", {
+      const response = await fetch("http://localhost:3005/api/projects", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -294,7 +293,7 @@ const AdminDashboard = () => {
         assignedTo: selectedUserEmail,
       };
 
-      const response = await fetch("http://localhost:3004/api/tasks", {
+      const response = await fetch("http://localhost:3005/api/tasks", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -326,13 +325,13 @@ const AdminDashboard = () => {
       status: "Open",
       prerequisiteTasks: [],
     });
-   
+
     setShowAddTaskModal(false);
   };
   const fetchTasksForProject = async (projectId) => {
     try {
       const response = await fetch(
-        `http://localhost:3004/api/tasks/project?projectId=${projectId}`
+        `http://localhost:3005/api/tasks/project?projectId=${projectId}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch tasks for the project");
@@ -387,14 +386,14 @@ const AdminDashboard = () => {
 
     try {
       const response = await axios.delete(
-        `http://localhost:3004/api/users/${userId}`
+        `http://localhost:3005/api/users/${userId}`
       );
 
       if (response.status === 200) {
         console.log("User deleted successfully");
 
         const updatedUsersResponse = await axios.get(
-          "http://localhost:3004/api/users"
+          "http://localhost:3005/api/users"
         );
         if (updatedUsersResponse.status === 200) {
           setUsers(updatedUsersResponse.data);
@@ -421,7 +420,7 @@ const AdminDashboard = () => {
 
     try {
       const response = await fetch(
-        `http://localhost:3004/api/projects/${project._id}`,
+        `http://localhost:3005/api/projects/${project._id}`,
         {
           method: "DELETE",
         }
@@ -479,7 +478,7 @@ const AdminDashboard = () => {
     try {
       const taskId = task._id;
       const response = await axios.put(
-        `http://localhost:3004/api/tasks/${taskId}/status`,
+        `http://localhost:3005/api/tasks/${taskId}/status`,
         { status: newStatus }
       );
 
@@ -517,7 +516,7 @@ const AdminDashboard = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:3004/api/tasks/${taskId}/hours`,
+        `http://localhost:3005/api/tasks/${taskId}/hours`,
         { hoursWorked: newHoursWorked }
       );
 
@@ -558,7 +557,7 @@ const AdminDashboard = () => {
   const deleteTask = async (taskId, index) => {
     try {
       const response = await fetch(
-        `http://localhost:3004/api/tasks/${taskId}`,
+        `http://localhost:3005/api/tasks/${taskId}`,
         {
           method: "DELETE",
         }
@@ -585,7 +584,7 @@ const AdminDashboard = () => {
     try {
       console.log(projectId);
       const response = await axios.get(
-        `http://localhost:3004/api/tasks/project?projectId=${projectId}`
+        `http://localhost:3005/api/tasks/project?projectId=${projectId}`
       );
       const tasks = response.data;
 
@@ -614,7 +613,7 @@ const AdminDashboard = () => {
       }
 
       const projectUpdateResponse = await axios.put(
-        `http://localhost:3004/api/projects/${projectId}/status`,
+        `http://localhost:3005/api/projects/${projectId}/status`,
         {
           status: updatedProjectStatus,
         }
@@ -1036,7 +1035,7 @@ const AdminDashboard = () => {
                 name="assignedTo"
                 value={selectedUserEmail}
                 onChange={(e) => {
-                  const selectedUserEmail = e.target.value; 
+                  const selectedUserEmail = e.target.value;
                   setSelectedUserEmail(selectedUserEmail);
                 }}
                 required

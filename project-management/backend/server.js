@@ -4,8 +4,8 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const app = express();
-const port = process.env.PORT || 3004;
-// app.use(cors({ origin: 'http://localhost:3004' }));
+const port = process.env.PORT || 3005;
+// app.use(cors({ origin: 'http://localhost:3005' }));
 const uri = process.env.ATLAS_URI;
 const mongoURI = uri;
 

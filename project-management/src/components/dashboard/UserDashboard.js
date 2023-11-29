@@ -51,7 +51,7 @@ const AdminDashboard = () => {
 
   const fetchProjects = async () => {
     try {
-      const response = await fetch("http://localhost:3004/api/projects");
+      const response = await fetch("http://localhost:3005/api/projects");
       if (!response.ok) {
         throw new Error("Failed to fetch projects");
       }
@@ -64,7 +64,7 @@ const AdminDashboard = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get("http://localhost:3004/api/tasks");
+      const response = await axios.get("http://localhost:3005/api/tasks");
       setTasks(response.data);
     } catch (error) {
       console.error("Error fetching tasks:", error);
@@ -74,7 +74,7 @@ const AdminDashboard = () => {
   const fetchTasksForProject = async (projectId) => {
     try {
       const response = await fetch(
-        `http://localhost:3004/api/tasks/project?projectId=${projectId}`
+        `http://localhost:3005/api/tasks/project?projectId=${projectId}`
       );
       if (!response.ok) {
         throw new Error("Failed to fetch tasks for the project");
@@ -142,7 +142,7 @@ const AdminDashboard = () => {
     try {
       const taskId = task._id;
       const response = await axios.put(
-        `http://localhost:3004/api/tasks/${taskId}/status`,
+        `http://localhost:3005/api/tasks/${taskId}/status`,
         { status: newStatus }
       );
 
@@ -180,7 +180,7 @@ const AdminDashboard = () => {
 
     try {
       const response = await axios.put(
-        `http://localhost:3004/api/tasks/${taskId}/hours`,
+        `http://localhost:3005/api/tasks/${taskId}/hours`,
         { hoursWorked: newHoursWorked }
       );
 
@@ -205,7 +205,7 @@ const AdminDashboard = () => {
   const updateProjectStatus = async (projectId) => {
     try {
       const response = await axios.get(
-        `http://localhost:3004/api/tasks/project?projectId=${projectId}`
+        `http://localhost:3005/api/tasks/project?projectId=${projectId}`
       );
       const tasks = response.data;
 
@@ -218,7 +218,7 @@ const AdminDashboard = () => {
         (task) => task.status === "in progress"
       );
       const allOpen = tasks.every((task) => task.status === "open");
- 
+
       const allCompleted = tasks.every((task) => task.status === "completed");
       const openTasksCount = tasks.filter(
         (task) => task.status === "open"
@@ -235,7 +235,7 @@ const AdminDashboard = () => {
       }
 
       const projectUpdateResponse = await axios.put(
-        `http://localhost:3004/api/projects/${projectId}/status`,
+        `http://localhost:3005/api/projects/${projectId}/status`,
         {
           status: updatedProjectStatus,
         }
