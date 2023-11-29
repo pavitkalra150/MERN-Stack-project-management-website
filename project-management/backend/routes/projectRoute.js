@@ -1,18 +1,30 @@
 const express = require("express");
 const router = express.Router();
 const Project = require("../models/projectModel");
+const { calculateProjectCost } = require('../utils/projectUtils');
 
 // Get all projects
-router.get("/projects", async (req, res) => {
+// router.get("/projects", async (req, res) => {
+//   try {
+//     const projects = await Project.find();
+//     res.json(projects);
+//   } catch (err) {
+//     res.status(500).json({ message: err.message });
+//   }
+// });
+router.get('/projects', async (req, res) => {
   try {
     const projects = await Project.find();
+    for (const project of projects) {
+      const cost = await calculateProjectCost(project._id);
+      project.projectCost = cost; 
+    }
     res.json(projects);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// Get a specific project
 router.get("/projects/:id", getProject, (req, res) => {
   res.json(res.project);
 });
@@ -36,7 +48,6 @@ router.patch("/projects/:id", getProject, async (req, res) => {
   if (req.body.description != null) {
     res.project.description = req.body.description;
   }
-  // Update other fields similarly
   try {
     const updatedProject = await res.project.save();
     res.json(updatedProject);

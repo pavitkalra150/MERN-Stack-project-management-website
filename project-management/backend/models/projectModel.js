@@ -8,7 +8,8 @@ const projectSchema = new mongoose.Schema({
     enum: ["Completed", "In Progress", "Open"],
     required: true,
   },
-  createdBy: { type: String, required: true }, // Storing email as a string
+  createdBy: { type: String, required: true }, 
+  projectCost: {type: Number},
 });
 
 const Project = mongoose.model("Project", projectSchema);

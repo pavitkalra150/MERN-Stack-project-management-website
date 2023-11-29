@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "../styles/login.css"; // Import custom CSS file
+import "../styles/login.css";
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -19,16 +19,15 @@ const Login = () => {
       //localStorage.setItem("token", token);
       sessionStorage.setItem("loggedInEmail", email);
 
-      // Redirect to different dashboards based on the user's role
       if (userRole === "Admin") {
         window.location.href = "/admin-dashboard";
       } else if (userRole === "User") {
         window.location.href = "/user-dashboard";
       } else {
-        setError("Invalid user role"); // Display error for unknown roles
+        setError("Invalid user role"); 
       }
     } catch (error) {
-      setError("Invalid credentials"); // Displaying a simple error message
+      setError("Invalid credentials");
       console.error("Login failed:", error.message);
     }
   };
@@ -39,8 +38,8 @@ const Login = () => {
         <div className="col-md-6">
           <div className="card shadow login-card">
             <div className="card-body">
-              <h3 className="card-title text-center mb-4">
-                Project Name Login
+              <h3 className="card-title text-center mb-4 text-primary">
+                Project Management Login
               </h3>
               <form onSubmit={handleSubmit}>
                 <div className="mb-3">

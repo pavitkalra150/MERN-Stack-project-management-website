@@ -21,10 +21,8 @@ router.post(
     try {
       console.log("Attempting to log in with credentials:", email, password);
 
-      // Find user by email
       const user = await User.findOne({ email });
 
-      // Check if user exists and match password (plaintext)
       if (!user || user.password !== password) {
         console.log("User not found or password doesn't match");
         return res.status(401).json({ message: "Invalid credentials" });
@@ -32,7 +30,6 @@ router.post(
 
       console.log("Login successful");
 
-      // Assuming the user object contains a 'role' field
       const userRole = user.role;
 
       res.status(200).json({ message: "Login successful", role: userRole });

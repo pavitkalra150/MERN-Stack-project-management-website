@@ -36,10 +36,10 @@ const AdminDashboard = () => {
   const [newTask, setNewTask] = useState({
     name: "",
     description: "",
-    project: "", // This will store the selected project's ID
+    project: "",
     startDate: "",
     endDate: "",
-    assignedTo: "", // This will store the selected user's ID
+    assignedTo: "", 
     hoursWorked: 0,
     status: "Open",
     prerequisiteTasks: [],
@@ -63,6 +63,7 @@ const AdminDashboard = () => {
     name: "",
     description: "",
     status: "Open",
+    projectCost: 0,
     createdBy: sessionStorage.getItem("loggedInEmail") || "",
   });
   const styles = {
@@ -91,7 +92,6 @@ const AdminDashboard = () => {
       color: "#1976d2",
       fontWeight: "bold",
     },
-    // Define other modal styles...
   };
   useEffect(() => {
     fetchProjects();
@@ -101,8 +101,8 @@ const AdminDashboard = () => {
 
   const handleEditProject = (e, project) => {
     e.stopPropagation();
-    setEditedProject(project); // Set the project to be edited
-    setShowEditProjectModal(true); // Open the edit project modal
+    setEditedProject(project); 
+    setShowEditProjectModal(true);
   };
 
   const handleSaveEditProject = async () => {
@@ -114,17 +114,16 @@ const AdminDashboard = () => {
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify(editedProject), // Send updated project data
+          body: JSON.stringify(editedProject),
         }
       );
 
       if (response.ok) {
-        // Update the projects array with the edited project
         const updatedProjects = projects.map((project) =>
           project._id === editedProject._id ? editedProject : project
         );
         setProjects(updatedProjects);
-        setShowEditProjectModal(false); // Close the edit project modal
+        setShowEditProjectModal(false);
         console.log("Project updated successfully");
       } else {
         console.error("Failed to update project");
@@ -160,8 +159,8 @@ const AdminDashboard = () => {
 
   const fetchTasks = async () => {
     try {
-      const response = await axios.get("http://localhost:3004/api/tasks"); // Update the URL to your backend endpoint
-      setTasks(response.data); // Update tasks state with fetched data
+      const response = await axios.get("http://localhost:3004/api/tasks");
+      setTasks(response.data); 
     } catch (error) {
       console.error("Error fetching tasks:", error);
     }
@@ -172,9 +171,9 @@ const AdminDashboard = () => {
     const taskIndex = updatedPrerequisites.indexOf(taskId);
 
     if (taskIndex === -1) {
-      updatedPrerequisites.push(taskId); // Add taskId if not already selected
+      updatedPrerequisites.push(taskId);
     } else {
-      updatedPrerequisites.splice(taskIndex, 1); // Remove taskId if already selected
+      updatedPrerequisites.splice(taskIndex, 1);
     }
 
     setNewTask({
@@ -186,7 +185,7 @@ const AdminDashboard = () => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
-    // Check if the change is for a user or a project
+
     if (name in newUser) {
       setNewUser({ ...newUser, [name]: value });
     } else if (name in newProject) {
@@ -316,7 +315,6 @@ const AdminDashboard = () => {
   };
 
   const handleCloseAddTaskModal = () => {
-    // Reset the newTask state to default values
     setNewTask({
       name: "",
       description: "",
@@ -328,7 +326,7 @@ const AdminDashboard = () => {
       status: "Open",
       prerequisiteTasks: [],
     });
-    // Close the modal
+   
     setShowAddTaskModal(false);
   };
   const fetchTasksForProject = async (projectId) => {
@@ -352,10 +350,8 @@ const AdminDashboard = () => {
     setSelectedProject(project);
     setShowProjectDetailsModal(true);
 
-    // Fetch tasks related to the selected project
     const tasks = await fetchTasksForProject(project._id);
     if (tasks.length > 0) {
-      // Set the tasks for the selected project
       setSelectedProject({ ...project, tasks });
     }
   };
@@ -375,7 +371,6 @@ const AdminDashboard = () => {
     setSelectedProject(null);
   };
 
-  // Function to handle deleting a user
   const handleDeleteUser = async (userId) => {
     if (!userId) {
       console.error("Invalid userId");
@@ -387,7 +382,7 @@ const AdminDashboard = () => {
     );
 
     if (!confirmDeletion) {
-      return; // If the user cancels the deletion, exit the function
+      return;
     }
 
     try {
@@ -398,12 +393,10 @@ const AdminDashboard = () => {
       if (response.status === 200) {
         console.log("User deleted successfully");
 
-        // Fetch updated users after successful deletion
         const updatedUsersResponse = await axios.get(
           "http://localhost:3004/api/users"
         );
         if (updatedUsersResponse.status === 200) {
-          // Update the state with the updated list of users
           setUsers(updatedUsersResponse.data);
         } else {
           console.error("Failed to fetch updated users");
@@ -416,14 +409,14 @@ const AdminDashboard = () => {
     }
   };
   const handleDeleteProject = async (e, project) => {
-    e.stopPropagation(); // To prevent triggering the onClick of the card
+    e.stopPropagation();
 
     const confirmDeletion = window.confirm(
       `Are you sure you want to delete the project "${project.name}"?`
     );
 
     if (!confirmDeletion) {
-      return; // If the user cancels the deletion, exit the function
+      return;
     }
 
     try {
@@ -435,7 +428,6 @@ const AdminDashboard = () => {
       );
 
       if (response.ok) {
-        // Filter out the deleted project from the projects array
         const updatedProjects = projects.filter((p) => p._id !== project._id);
         setProjects(updatedProjects);
         console.log("Project deleted successfully");
@@ -520,7 +512,7 @@ const AdminDashboard = () => {
     );
 
     if (!confirmUpdate) {
-      return; // If the user cancels, exit the function
+      return;
     }
 
     try {
@@ -537,6 +529,7 @@ const AdminDashboard = () => {
           ...selectedProject,
           tasks: updatedTasks,
         });
+        fetchProjects();
         console.log("Task hours worked updated successfully");
       } else {
         console.error("Failed to update task hours worked");
@@ -548,9 +541,7 @@ const AdminDashboard = () => {
 
   const handleEditTask = (index) => {
     const selectedTask = selectedProject.tasks[index];
-    // Implement logic for editing the task here
     console.log(`Editing task ${index + 1}:`, selectedTask);
-    // You can open a modal or perform other edit operations here
   };
 
   const handleDeleteTask = (index) => {
@@ -575,7 +566,6 @@ const AdminDashboard = () => {
 
       if (response.ok) {
         console.log(`Task ${index + 1} deleted successfully`);
-        // Update the tasks list after successful deletion
         const updatedTasks = selectedProject.tasks.filter(
           (task, i) => i !== index
         );
@@ -593,7 +583,6 @@ const AdminDashboard = () => {
 
   const updateProjectStatus = async (projectId) => {
     try {
-      // Fetch all tasks for the given project ID
       console.log(projectId);
       const response = await axios.get(
         `http://localhost:3004/api/tasks/project?projectId=${projectId}`
@@ -605,17 +594,14 @@ const AdminDashboard = () => {
         return;
       }
 
-      // Check if any task is 'In Progress'
       const inProgressTasks = tasks.some(
         (task) => task.status === "in progress"
       );
       const allOpen = tasks.every((task) => task.status === "open");
-      // Check if all tasks are 'Completed'
       const allCompleted = tasks.every((task) => task.status === "completed");
       const openTasksCount = tasks.filter(
         (task) => task.status === "open"
       ).length;
-      // Update the project status based on task statuses
       let updatedProjectStatus;
       if (allCompleted) {
         updatedProjectStatus = "Completed";
@@ -627,7 +613,6 @@ const AdminDashboard = () => {
         updatedProjectStatus = "In Progress";
       }
 
-      // Update the project's status in the database
       const projectUpdateResponse = await axios.put(
         `http://localhost:3004/api/projects/${projectId}/status`,
         {
@@ -641,8 +626,6 @@ const AdminDashboard = () => {
           updatedProjectStatus
         );
         fetchProjects();
-        // Optionally, you might want to refresh the project list after the update
-        // fetchProjects();
       } else {
         console.error("Failed to update project status");
       }
@@ -719,7 +702,6 @@ const AdminDashboard = () => {
                   text="dark"
                   onClick={() => handleProjectClick(project)}
                 >
-                  {/* Edit and delete icons */}
                   <div className="d-flex justify-content-end">
                     <span onClick={(e) => handleEditProject(e, project)}>
                       <FontAwesomeIcon
@@ -740,6 +722,7 @@ const AdminDashboard = () => {
                     <Card.Text>Description: {project.description}</Card.Text>
                     <Card.Text>Status: {project.status}</Card.Text>
                     <Card.Text>Created By: {project.createdBy}</Card.Text>
+                    <Card.Text>Project Cost: ${project.projectCost}</Card.Text>
                   </Card.Body>
                 </Card>
               </Col>
@@ -773,17 +756,15 @@ const AdminDashboard = () => {
                     <td>{user.role}</td>
                     <td>{user.hourlyRate}</td>
                     <td>
-                      {/* Edit icon */}
                       <FontAwesomeIcon
                         icon={faEdit}
                         style={{ cursor: "pointer", marginRight: "5px" }}
                         onClick={() => handleEditUser(user)}
                       />
-                      {/* Delete icon */}
                       <FontAwesomeIcon
                         icon={faTrash}
                         style={{ cursor: "pointer" }}
-                        onClick={() => handleDeleteUser(user._id)} // Assuming user._id is the valid ID
+                        onClick={() => handleDeleteUser(user._id)}
                       />
                     </td>
                   </tr>
@@ -794,7 +775,6 @@ const AdminDashboard = () => {
         </Col>
       </Row>
 
-      {/* Add User Modal */}
       <Modal show={showAddUserModal} onHide={handleCloseAddUserModal}>
         <Modal.Header closeButton>
           <Modal.Title>Add New User</Modal.Title>
@@ -887,19 +867,16 @@ const AdminDashboard = () => {
           </Modal.Title>
         </Modal.Header>
         <Modal.Body>
-          {/* Display tasks related to the selected project */}
           {selectedProject &&
           selectedProject.tasks &&
           selectedProject.tasks.length > 0 ? (
             selectedProject.tasks.map((task, index) => (
               <Card key={task.taskId}>
-                {/* Assuming taskId is a unique identifier */}
                 <Card.Header
                   onClick={() => handleTaskToggle(index)}
                   className="d-flex justify-content-between align-items-center"
                 >
                   {task.name}
-                  {/* Edit and Delete icons */}
                   <div>
                     <FontAwesomeIcon
                       icon={faEdit}
@@ -1059,8 +1036,8 @@ const AdminDashboard = () => {
                 name="assignedTo"
                 value={selectedUserEmail}
                 onChange={(e) => {
-                  const selectedUserEmail = e.target.value; // Store selected user's email directly
-                  setSelectedUserEmail(selectedUserEmail); // Update the state with selected email
+                  const selectedUserEmail = e.target.value; 
+                  setSelectedUserEmail(selectedUserEmail);
                 }}
                 required
               >
